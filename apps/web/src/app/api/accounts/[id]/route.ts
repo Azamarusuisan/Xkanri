@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { DEMO_MODE, DEMO_ACCOUNTS } from '@/lib/demo';
 import { getAuthenticatedClient, jsonResponse, errorResponse } from '@/lib/api-helpers';
 
 // PUT: 更新
@@ -6,10 +7,18 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
+
+  if (DEMO_MODE) {
+    const account = DEMO_ACCOUNTS.find((a) => a.id === id);
+    if (!account) return errorResponse('Not found', 404);
+    const body = await request.json();
+    return jsonResponse({ account: { ...account, ...body } });
+  }
+
   const auth = await getAuthenticatedClient();
   if ('error' in auth && auth.error) return auth.error;
   const { supabase, tenantId } = auth as Exclude<typeof auth, { error: any }>;
-  const { id } = await params;
 
   const body = await request.json();
   const updates: Record<string, unknown> = {};
@@ -35,6 +44,10 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (DEMO_MODE) {
+    return jsonResponse({ ok: true });
+  }
+
   const auth = await getAuthenticatedClient();
   if ('error' in auth && auth.error) return auth.error;
   const { supabase, tenantId } = auth as Exclude<typeof auth, { error: any }>;

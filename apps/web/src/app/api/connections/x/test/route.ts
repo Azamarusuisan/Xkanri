@@ -1,9 +1,21 @@
+import { DEMO_MODE, DEMO_CONNECTION } from '@/lib/demo';
 import { getAuthenticatedClient, jsonResponse, errorResponse } from '@/lib/api-helpers';
 import { decrypt } from '@/lib/crypto';
 import { verifyCredentials } from '@/lib/x-api';
 
 // POST: 接続テスト
 export async function POST() {
+  if (DEMO_MODE) {
+    return jsonResponse({
+      status: 'ok',
+      user: {
+        id: DEMO_CONNECTION.x_user_id,
+        username: DEMO_CONNECTION.x_username,
+        name: 'Demo User',
+      },
+    });
+  }
+
   const auth = await getAuthenticatedClient();
   if ('error' in auth && auth.error) return auth.error;
   const { supabase, tenantId } = auth as Exclude<typeof auth, { error: any }>;

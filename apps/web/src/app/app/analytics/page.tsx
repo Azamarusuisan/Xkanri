@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Input } from '@/components/ui/input';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import { PeriodSelector, getPeriodDates, type PeriodKey } from '@/components/period-selector';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
@@ -56,23 +56,23 @@ export default function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [accounts, setAccounts] = useState<TrackedAccount[]>([]);
   const [accountId, setAccountId] = useState('');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [period, setPeriod] = useState<PeriodKey>('4weeks');
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    const { dateFrom, dateTo } = getPeriodDates(period);
     try {
       const params = new URLSearchParams();
+      params.set('date_from', dateFrom);
+      params.set('date_to', dateTo);
       if (accountId) params.set('account_id', accountId);
-      if (dateFrom) params.set('date_from', dateFrom);
-      if (dateTo) params.set('date_to', dateTo);
       const res = await fetch(`/api/analytics?${params}`);
       const d = await res.json();
       setData(d);
     } catch { toast.error('分析データの取得に失敗しました'); }
     finally { setLoading(false); }
-  }, [accountId, dateFrom, dateTo]);
+  }, [accountId, period]);
 
   useEffect(() => {
     fetch('/api/accounts').then((r) => r.json()).then((d) => setAccounts(d.accounts || []));
@@ -110,7 +110,8 @@ export default function AnalyticsPage() {
       <p className="text-[12px] text-[#5f6368] mb-6">投稿頻度・メディア比率・ER・当たり判定・テーマ分類</p>
 
       {/* Filters */}
-      <div className="flex gap-3 mb-6 flex-wrap">
+      <div className="flex items-center gap-3 mb-6 flex-wrap">
+        <PeriodSelector value={period} onChange={setPeriod} />
         <div className="w-40">
           <Select value={accountId} onValueChange={(v) => setAccountId(v === 'all' ? '' : v)}>
             <SelectTrigger className="h-8 border-[#dadce0] text-[12px]"><SelectValue placeholder="全アカウント" /></SelectTrigger>
@@ -120,8 +121,6 @@ export default function AnalyticsPage() {
             </SelectContent>
           </Select>
         </div>
-        <Input type="date" className="w-32 h-8 border-[#dadce0]" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
-        <Input type="date" className="w-32 h-8 border-[#dadce0]" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
       </div>
 
       {/* Summary Cards */}

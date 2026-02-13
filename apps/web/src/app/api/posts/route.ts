@@ -20,6 +20,10 @@ export async function GET(request: NextRequest) {
     if (accountId) filtered = filtered.filter(p => p.tracked_account_id === accountId);
     const theme = searchParams.get('theme');
     if (theme) filtered = filtered.filter(p => p.theme === theme);
+    const dateFrom = searchParams.get('date_from');
+    if (dateFrom) filtered = filtered.filter(p => p.posted_at >= dateFrom);
+    const dateTo = searchParams.get('date_to');
+    if (dateTo) filtered = filtered.filter(p => p.posted_at <= dateTo + 'T23:59:59');
     const total = filtered.length;
     const offset = (page - 1) * limit;
     const paged = filtered.slice(offset, offset + limit);

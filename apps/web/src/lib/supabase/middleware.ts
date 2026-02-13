@@ -1,7 +1,21 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
+
+const DEMO_MODE = !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-project');
 
 export async function updateSession(request: NextRequest) {
+  // Demo mode: skip auth, allow all /app routes
+  if (DEMO_MODE) {
+    if (request.nextUrl.pathname === '/') {
+      const url = request.nextUrl.clone();
+      url.pathname = '/app';
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next({ request });
+  }
+
+  // Production mode with real Supabase
+  const { createServerClient } = await import('@supabase/ssr');
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(

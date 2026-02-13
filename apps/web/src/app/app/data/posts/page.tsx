@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { Search, Download, Loader2, Database, ChevronLeft, ChevronRight } from 'lucide-react';
+import { PeriodSelector, getPeriodDates, type PeriodKey } from '@/components/period-selector';
 
 interface Post {
   id: string;
@@ -67,26 +68,26 @@ export default function PostsPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+  const [period, setPeriod] = useState<PeriodKey>('4weeks');
   const [search, setSearch] = useState('');
   const [mediaType, setMediaType] = useState('');
   const [isHit, setIsHit] = useState('');
   const [accountId, setAccountId] = useState('');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
   const [theme, setTheme] = useState('');
 
   const fetchPosts = useCallback(async () => {
     setLoading(true);
+    const { dateFrom, dateTo } = getPeriodDates(period);
     try {
       const params = new URLSearchParams();
       params.set('page', String(page));
       params.set('limit', '50');
+      params.set('date_from', dateFrom);
+      params.set('date_to', dateTo);
       if (search) params.set('search', search);
       if (mediaType) params.set('media_type', mediaType);
       if (isHit) params.set('is_hit', isHit);
       if (accountId) params.set('account_id', accountId);
-      if (dateFrom) params.set('date_from', dateFrom);
-      if (dateTo) params.set('date_to', dateTo);
       if (theme) params.set('theme', theme);
       const res = await fetch(`/api/posts?${params}`);
       const data = await res.json();
@@ -95,7 +96,7 @@ export default function PostsPage() {
       setTotalPages(data.total_pages || 1);
     } catch { toast.error('投稿データの取得に失敗しました'); }
     finally { setLoading(false); }
-  }, [page, search, mediaType, isHit, accountId, dateFrom, dateTo, theme]);
+  }, [page, period, search, mediaType, isHit, accountId, theme]);
 
   useEffect(() => {
     fetch('/api/accounts').then((r) => r.json()).then((d) => setAccounts(d.accounts || []));
@@ -110,10 +111,11 @@ export default function PostsPage() {
   }
 
   function handleExport() {
+    const { dateFrom, dateTo } = getPeriodDates(period);
     const params = new URLSearchParams();
+    params.set('date_from', dateFrom);
+    params.set('date_to', dateTo);
     if (accountId) params.set('account_id', accountId);
-    if (dateFrom) params.set('date_from', dateFrom);
-    if (dateTo) params.set('date_to', dateTo);
     window.open(`/api/posts/export?${params}`, '_blank');
   }
 
@@ -126,10 +128,13 @@ export default function PostsPage() {
             収集した投稿データの検索・フィルタ・エクスポート（{total.toLocaleString()} 件）
           </p>
         </div>
-        <Button variant="outline" onClick={handleExport} className="h-8 text-[12px] px-4 border-[#dadce0] text-[#3c4043] hover:bg-[#f1f3f4]">
-          <Download className="h-3.5 w-3.5 mr-1.5" />
-          CSV
-        </Button>
+        <div className="flex items-center gap-3">
+          <PeriodSelector value={period} onChange={(p) => { setPeriod(p); setPage(1); }} />
+          <Button variant="outline" onClick={handleExport} className="h-8 text-[12px] px-4 border-[#dadce0] text-[#3c4043] hover:bg-[#f1f3f4]">
+            <Download className="h-3.5 w-3.5 mr-1.5" />
+            CSV
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -182,14 +187,6 @@ export default function PostsPage() {
                 <SelectItem value="false">通常</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-          <div className="w-32">
-            <label className="text-[11px] text-[#5f6368] mb-1 block">開始日</label>
-            <Input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPage(1); }} className="h-8 border-[#dadce0]" />
-          </div>
-          <div className="w-32">
-            <label className="text-[11px] text-[#5f6368] mb-1 block">終了日</label>
-            <Input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPage(1); }} className="h-8 border-[#dadce0]" />
           </div>
         </form>
       </div>

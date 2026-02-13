@@ -5,9 +5,14 @@ import { DEMO_MODE, DEMO_AUDIT_LOGS } from '@/lib/demo';
 // GET: 監査ログ集計
 export async function GET(request: NextRequest) {
   if (DEMO_MODE) {
-    const logs = DEMO_AUDIT_LOGS;
-    const page = 1;
+    const { searchParams } = new URL(request.url);
+    const dateFrom = searchParams.get('date_from') || '';
+    const dateTo = searchParams.get('date_to') || '';
+    const page = parseInt(searchParams.get('page') || '1');
     const limit = 50;
+    let logs = DEMO_AUDIT_LOGS;
+    if (dateFrom) logs = logs.filter((l) => l.created_at >= dateFrom);
+    if (dateTo) logs = logs.filter((l) => l.created_at <= dateTo + 'T23:59:59');
     const endpointBreakdown: Record<string, { count: number; units: number }> = {};
     let totalUnits = 0;
     let rateLimitCount = 0;

@@ -6,7 +6,14 @@ import { DEMO_MODE, DEMO_POSTS, DEMO_ACCOUNTS } from '@/lib/demo';
 // GET: 分析データ
 export async function GET(request: NextRequest) {
   if (DEMO_MODE) {
-    const posts = DEMO_POSTS;
+    const { searchParams } = new URL(request.url);
+    const dateFrom = searchParams.get('date_from') || '';
+    const dateTo = searchParams.get('date_to') || '';
+    const accountId = searchParams.get('account_id') || '';
+    let posts = DEMO_POSTS;
+    if (accountId) posts = posts.filter((p) => p.tracked_account_id === accountId);
+    if (dateFrom) posts = posts.filter((p) => p.posted_at >= dateFrom);
+    if (dateTo) posts = posts.filter((p) => p.posted_at <= dateTo + 'T23:59:59');
     const followers = 1250000;
     const dailyMap = new Map<string, number>();
     const weeklyMap = new Map<string, number>();

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Input } from '@/components/ui/input';
+import { PeriodSelector, getPeriodDates, type PeriodKey } from '@/components/period-selector';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
@@ -41,22 +41,22 @@ export default function AuditPage() {
   const [data, setData] = useState<AuditData | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [period, setPeriod] = useState<PeriodKey>('4weeks');
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    const { dateFrom, dateTo } = getPeriodDates(period);
     try {
       const params = new URLSearchParams();
       params.set('page', String(page));
-      if (dateFrom) params.set('date_from', dateFrom);
-      if (dateTo) params.set('date_to', dateTo);
+      params.set('date_from', dateFrom);
+      params.set('date_to', dateTo);
       const res = await fetch(`/api/audit?${params}`);
       const d = await res.json();
       setData(d);
     } catch { toast.error('監査データの取得に失敗しました'); }
     finally { setLoading(false); }
-  }, [page, dateFrom, dateTo]);
+  }, [page, period]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -72,9 +72,8 @@ export default function AuditPage() {
       <p className="text-[12px] text-[#5f6368] mb-6">X API 呼び出し履歴とコスト推定</p>
 
       {/* Filters */}
-      <div className="flex gap-3 mb-6">
-        <Input type="date" className="w-32 h-8 border-[#dadce0]" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPage(1); }} />
-        <Input type="date" className="w-32 h-8 border-[#dadce0]" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPage(1); }} />
+      <div className="flex items-center gap-3 mb-6">
+        <PeriodSelector value={period} onChange={(p) => { setPeriod(p); setPage(1); }} />
       </div>
 
       {/* Summary Cards */}

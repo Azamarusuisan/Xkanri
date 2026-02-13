@@ -1,44 +1,58 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
 import { PlugZap, Users, ListTodo, Database, TrendingUp, ArrowUpRight, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
+import { PeriodSelector, getPeriodDates, type PeriodKey } from '@/components/period-selector';
 
-const DEMO_MODE = !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-  process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-project');
+const PERIOD_LABELS: Record<PeriodKey, string> = {
+  '4weeks': '過去4週間',
+  '3months': '過去3ヶ月',
+  '1year': '過去1年間',
+};
 
-export default async function DashboardPage() {
-  let counts = { connections: 1, accounts: 3, jobs: 5, posts: 247 };
+export default function DashboardPage() {
+  const [period, setPeriod] = useState<PeriodKey>('4weeks');
+  const [counts, setCounts] = useState({ posts: 0, hits: 0, accounts: 3, jobs: 4 });
 
-  if (!DEMO_MODE) {
-    const { createClient } = await import('@/lib/supabase/server');
-    const supabase = await createClient();
-    const [connections, accounts, jobs, posts] = await Promise.all([
-      supabase.from('connections_x').select('id', { count: 'exact', head: true }),
-      supabase.from('tracked_accounts').select('id', { count: 'exact', head: true }),
-      supabase.from('fetch_jobs').select('id', { count: 'exact', head: true }),
-      supabase.from('posts').select('id', { count: 'exact', head: true }),
-    ]);
-    counts = {
-      connections: connections.count ?? 0,
-      accounts: accounts.count ?? 0,
-      jobs: jobs.count ?? 0,
-      posts: posts.count ?? 0,
-    };
-  }
+  const fetchCounts = useCallback(async () => {
+    const { dateFrom, dateTo } = getPeriodDates(period);
+    try {
+      const [postsRes, analyticsRes] = await Promise.all([
+        fetch(`/api/posts?limit=1&date_from=${dateFrom}&date_to=${dateTo}`),
+        fetch(`/api/analytics?date_from=${dateFrom}&date_to=${dateTo}`),
+      ]);
+      const postsData = await postsRes.json();
+      const analyticsData = await analyticsRes.json();
+      setCounts({
+        posts: postsData.total || 0,
+        hits: analyticsData.hits?.length || 0,
+        accounts: 3,
+        jobs: 4,
+      });
+    } catch {}
+  }, [period]);
+
+  useEffect(() => { fetchCounts(); }, [fetchCounts]);
 
   const stats = [
-    { label: 'API接続', value: counts.connections, icon: PlugZap, href: '/app/connections/x', color: '#1a73e8', delta: '有効' },
-    { label: '追跡アカウント', value: counts.accounts, icon: Users, href: '/app/accounts', color: '#34a853', delta: '+2 今月' },
-    { label: '収集ジョブ', value: counts.jobs, icon: ListTodo, href: '/app/jobs', color: '#fbbc04', delta: '3 完了' },
-    { label: '取得済み投稿', value: counts.posts, icon: Database, href: '/app/data/posts', color: '#ea4335', delta: '+90 今週' },
+    { label: 'API接続', value: 1, icon: PlugZap, href: '/app/connections/x', color: '#1a73e8', delta: '有効' },
+    { label: '追跡アカウント', value: counts.accounts, icon: Users, href: '/app/accounts', color: '#34a853', delta: `${counts.accounts} 件登録中` },
+    { label: '期間内投稿', value: counts.posts, icon: Database, href: '/app/data/posts', color: '#ea4335', delta: PERIOD_LABELS[period] },
+    { label: 'HIT投稿', value: counts.hits, icon: TrendingUp, href: '/app/analytics', color: '#fbbc04', delta: 'ER上位25%' },
   ];
 
   return (
     <div>
       {/* Page header */}
-      <div className="mb-6">
-        <h1 className="text-[20px] font-normal text-[#202124]">概要</h1>
-        <p className="text-[12px] text-[#5f6368] mt-0.5">
-          全アカウント &middot; 過去28日間
-        </p>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-[20px] font-normal text-[#202124]">概要</h1>
+          <p className="text-[12px] text-[#5f6368] mt-0.5">
+            全アカウント &middot; {PERIOD_LABELS[period]}
+          </p>
+        </div>
+        <PeriodSelector value={period} onChange={setPeriod} />
       </div>
 
       {/* Metric cards */}

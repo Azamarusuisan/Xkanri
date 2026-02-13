@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState } from 'react';
 import {
   PlugZap,
   Users,
@@ -13,6 +14,8 @@ import {
   LayoutDashboard,
   Sparkles,
   Megaphone,
+  Menu,
+  X,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
@@ -56,7 +59,7 @@ const NAV_SECTIONS: Array<{ title?: string; items: NavItem[] }> = [
   },
 ];
 
-export function Sidebar() {
+function NavContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
 
   async function handleLogout() {
@@ -68,9 +71,9 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="w-[220px] bg-white border-r border-[#dadce0] flex flex-col h-screen sticky top-0 select-none">
+    <>
       {/* Header */}
-      <div className="h-[56px] flex items-center px-4 border-b border-[#dadce0]">
+      <div className="h-[56px] flex items-center px-4 border-b border-[#dadce0] shrink-0">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded bg-[#1a73e8] flex items-center justify-center shrink-0">
             <span className="text-white text-xs font-bold">P</span>
@@ -101,6 +104,7 @@ export function Sidebar() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={onNavigate}
                   className={cn(
                     'flex items-center gap-3 mx-2 px-3 h-8 rounded text-[13px] transition-colors relative',
                     isActive
@@ -121,7 +125,7 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-[#dadce0] p-2">
+      <div className="border-t border-[#dadce0] p-2 shrink-0">
         <button
           onClick={handleLogout}
           className="flex items-center gap-3 px-3 h-8 rounded text-[13px] text-[#5f6368] hover:bg-[#f1f3f4] w-full transition-colors"
@@ -130,6 +134,49 @@ export function Sidebar() {
           ログアウト
         </button>
       </div>
+    </>
+  );
+}
+
+export function Sidebar() {
+  return (
+    <aside className="hidden md:flex w-[220px] bg-white border-r border-[#dadce0] flex-col h-screen sticky top-0 select-none">
+      <NavContent />
     </aside>
+  );
+}
+
+export function MobileNav() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="md:hidden p-1.5 rounded hover:bg-[#f1f3f4] transition-colors"
+        aria-label="メニューを開く"
+      >
+        <Menu className="h-5 w-5 text-[#5f6368]" />
+      </button>
+
+      {/* Overlay */}
+      {open && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div className="fixed inset-0 bg-black/40" onClick={() => setOpen(false)} />
+          <div className="fixed inset-y-0 left-0 w-[280px] bg-white flex flex-col shadow-xl animate-in slide-in-from-left duration-200">
+            <div className="absolute right-2 top-3 z-10">
+              <button
+                onClick={() => setOpen(false)}
+                className="p-1.5 rounded hover:bg-[#f1f3f4] transition-colors"
+                aria-label="メニューを閉じる"
+              >
+                <X className="h-5 w-5 text-[#5f6368]" />
+              </button>
+            </div>
+            <NavContent onNavigate={() => setOpen(false)} />
+          </div>
+        </div>
+      )}
+    </>
   );
 }

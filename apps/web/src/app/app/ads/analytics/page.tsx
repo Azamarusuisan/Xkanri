@@ -96,7 +96,7 @@ export default function AdsAnalyticsPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
         {[
           { label: '総支出', value: `¥${data.summary.total_spend.toLocaleString()}`, icon: DollarSign, color: '#ea4335', sub: null },
           { label: 'CPC', value: `¥${data.summary.cpc.toLocaleString()}`, icon: MousePointerClick, color: '#1a73e8', sub: 'Cost Per Click' },
@@ -117,7 +117,7 @@ export default function AdsAnalyticsPage() {
       </div>
 
       {/* Additional summary row */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-6">
         {[
           { label: 'インプレッション', value: data.summary.total_impressions.toLocaleString() },
           { label: 'クリック', value: data.summary.total_clicks.toLocaleString() },
@@ -157,11 +157,11 @@ export default function AdsAnalyticsPage() {
 
       {/* Organic vs Paid Comparison */}
       {data.organic_vs_paid.length > 0 && (
-        <div className="bg-white rounded-lg border border-[#dadce0] overflow-hidden">
+        <div className="bg-white rounded-lg border border-[#dadce0] overflow-x-auto">
           <div className="px-5 py-4 border-b border-[#f1f3f4]">
             <span className="text-[13px] font-medium text-[#202124]">クリエイティブ別 有機 vs 広告</span>
           </div>
-          <Table>
+          <Table className="min-w-[640px]">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead>クリエイティブ</TableHead>

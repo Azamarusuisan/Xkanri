@@ -77,7 +77,7 @@ export default function AuditPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-6">
         {[
           { label: 'API呼び出し総数', value: data.summary.total_calls.toLocaleString(), icon: Activity, color: '#1a73e8' },
           { label: '推定ユニット合計', value: data.summary.total_units.toLocaleString(), icon: DollarSign, color: '#34a853' },
@@ -121,11 +121,11 @@ export default function AuditPage() {
 
       {/* Endpoint Breakdown */}
       {data.summary.endpoint_breakdown.length > 0 && (
-        <div className="bg-white rounded-lg border border-[#dadce0] mb-6 overflow-hidden">
+        <div className="bg-white rounded-lg border border-[#dadce0] mb-6 overflow-x-auto">
           <div className="px-5 py-4 border-b border-[#f1f3f4]">
             <span className="text-[13px] font-medium text-[#202124]">エンドポイント別</span>
           </div>
-          <Table>
+          <Table className="min-w-[480px]">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead>エンドポイント</TableHead>
@@ -147,7 +147,7 @@ export default function AuditPage() {
       )}
 
       {/* Log Table */}
-      <div className="bg-white rounded-lg border border-[#dadce0] overflow-hidden">
+      <div className="bg-white rounded-lg border border-[#dadce0] overflow-x-auto">
         <div className="px-5 py-4 border-b border-[#f1f3f4]">
           <span className="text-[13px] font-medium text-[#202124]">
             API呼び出しログ（{data.total_logs.toLocaleString()} 件）
@@ -160,7 +160,7 @@ export default function AuditPage() {
           </div>
         ) : (
           <>
-            <Table>
+            <Table className="min-w-[700px]">
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead>日時</TableHead>

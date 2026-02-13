@@ -142,7 +142,7 @@ export default function JobsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-[20px] font-normal text-[#202124]">収集ジョブ</h1>
           <p className="text-[12px] text-[#5f6368] mt-0.5">投稿データの収集ジョブを管理</p>
@@ -234,8 +234,8 @@ export default function JobsPage() {
           <p className="text-[13px] text-[#5f6368]">ジョブがありません</p>
         </div>
       ) : (
-        <div className="bg-white rounded-lg border border-[#dadce0] overflow-hidden">
-          <Table>
+        <div className="bg-white rounded-lg border border-[#dadce0] overflow-x-auto">
+          <Table className="min-w-[700px]">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead>アカウント</TableHead>

@@ -45,7 +45,7 @@ export default function DashboardPage() {
   return (
     <div>
       {/* Page header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-[20px] font-normal text-[#202124]">概要</h1>
           <p className="text-[12px] text-[#5f6368] mt-0.5">
@@ -56,7 +56,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Metric cards */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8">
         {stats.map((s) => (
           <Link key={s.href} href={s.href} className="group">
             <div className="bg-white rounded-lg border border-[#dadce0] p-4 hover:shadow-md hover:border-[#1a73e8]/30 transition-all cursor-pointer">
@@ -84,7 +84,7 @@ export default function DashboardPage() {
       {/* Quick actions */}
       <div className="bg-white rounded-lg border border-[#dadce0] p-5">
         <h2 className="text-[14px] font-medium text-[#202124] mb-4">クイックアクション</h2>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Link href="/app/accounts" className="flex items-center gap-3 p-3 rounded-lg border border-[#dadce0] hover:bg-[#f8f9fa] hover:border-[#1a73e8]/30 transition-all text-[13px] text-[#3c4043]">
             <Users className="h-5 w-5 text-[#1a73e8]" />
             <div>

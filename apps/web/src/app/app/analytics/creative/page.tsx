@@ -154,7 +154,7 @@ export default function CreativeAnalyticsPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
         {[
           { label: '平均ER', value: `${(data.summary.avg_er * 100).toFixed(2)}%`, icon: TrendingUp, color: '#1a73e8', sub: null },
           { label: '拡散率', value: data.summary.avg_virality_ratio.toFixed(3), icon: Repeat2, color: '#34a853', sub: 'RT / いいね' },
@@ -175,7 +175,7 @@ export default function CreativeAnalyticsPage() {
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         {/* Appeal Frame Distribution */}
         <div className="bg-white rounded-lg border border-[#dadce0]">
           <div className="px-5 py-4 border-b border-[#f1f3f4]">
@@ -228,12 +228,12 @@ export default function CreativeAnalyticsPage() {
 
       {/* Winning Patterns TOP10 */}
       {data.winning_patterns.length > 0 && (
-        <div className="bg-white rounded-lg border border-[#dadce0] mb-6 overflow-hidden">
+        <div className="bg-white rounded-lg border border-[#dadce0] mb-6 overflow-x-auto">
           <div className="px-5 py-4 border-b border-[#f1f3f4]">
             <span className="text-[13px] font-medium text-[#202124]">勝ちパターン TOP10</span>
             <span className="text-[11px] text-[#5f6368] ml-2">テーマ × 訴求 × メディア × 曜日 × 時間帯 の組合せ</span>
           </div>
-          <Table>
+          <Table className="min-w-[700px]">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-10">#</TableHead>

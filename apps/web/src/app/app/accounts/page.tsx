@@ -84,7 +84,7 @@ export default function AccountsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-[20px] font-normal text-[#202124]">追跡アカウント</h1>
           <p className="text-[12px] text-[#5f6368] mt-0.5">データ収集対象のXアカウントを管理</p>
@@ -132,8 +132,8 @@ export default function AccountsPage() {
           <p className="text-[12px] text-[#9aa0a6] mt-1">「アカウント追加」からXアカウントを登録してください</p>
         </div>
       ) : (
-        <div className="bg-white rounded-lg border border-[#dadce0] overflow-hidden">
-          <Table>
+        <div className="bg-white rounded-lg border border-[#dadce0] overflow-x-auto">
+          <Table className="min-w-[640px]">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead>アカウント</TableHead>

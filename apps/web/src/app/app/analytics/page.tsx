@@ -124,7 +124,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
         {[
           { label: '投稿数', value: data.total_posts.toLocaleString(), icon: BarChart3, color: '#1a73e8', sub: null },
           { label: '平均ER', value: `${(data.er_stats.avg * 100).toFixed(2)}%`, icon: TrendingUp, color: '#34a853', sub: `p75: ${(data.er_stats.p75 * 100).toFixed(2)}%` },
@@ -145,7 +145,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         {/* Weekly Frequency */}
         <div className="bg-white rounded-lg border border-[#dadce0]">
           <div className="px-5 py-4 border-b border-[#f1f3f4]">
@@ -212,11 +212,11 @@ export default function AnalyticsPage() {
 
       {/* Hit Posts Table */}
       {data.hits.length > 0 && (
-        <div className="bg-white rounded-lg border border-[#dadce0] overflow-hidden">
+        <div className="bg-white rounded-lg border border-[#dadce0] overflow-x-auto">
           <div className="px-5 py-4 border-b border-[#f1f3f4]">
             <span className="text-[13px] font-medium text-[#202124]">HIT投稿 TOP20</span>
           </div>
-          <Table>
+          <Table className="min-w-[600px]">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead>本文</TableHead>

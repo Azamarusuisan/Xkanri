@@ -1,8 +1,31 @@
 import { NextRequest } from 'next/server';
 import { getAuthenticatedClient, jsonResponse, errorResponse } from '@/lib/api-helpers';
+import { DEMO_MODE, DEMO_POSTS } from '@/lib/demo';
 
 // GET: 投稿一覧（フィルタ/検索/ページネーション）
 export async function GET(request: NextRequest) {
+  if (DEMO_MODE) {
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
+    let filtered = [...DEMO_POSTS];
+    const search = searchParams.get('search');
+    if (search) filtered = filtered.filter(p => p.text?.toLowerCase().includes(search.toLowerCase()));
+    const mediaType = searchParams.get('media_type');
+    if (mediaType) filtered = filtered.filter(p => p.media_type === mediaType);
+    const isHit = searchParams.get('is_hit');
+    if (isHit === 'true') filtered = filtered.filter(p => p.is_hit);
+    else if (isHit === 'false') filtered = filtered.filter(p => !p.is_hit);
+    const accountId = searchParams.get('account_id');
+    if (accountId) filtered = filtered.filter(p => p.tracked_account_id === accountId);
+    const theme = searchParams.get('theme');
+    if (theme) filtered = filtered.filter(p => p.theme === theme);
+    const total = filtered.length;
+    const offset = (page - 1) * limit;
+    const paged = filtered.slice(offset, offset + limit);
+    return jsonResponse({ posts: paged, total, page, limit, total_pages: Math.ceil(total / limit) });
+  }
+
   const auth = await getAuthenticatedClient();
   if ('error' in auth && auth.error) return auth.error;
   const { supabase, tenantId } = auth as Exclude<typeof auth, { error: any }>;

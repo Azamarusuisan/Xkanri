@@ -2,9 +2,12 @@ import { NextRequest } from 'next/server';
 import { getAuthenticatedClient, jsonResponse, errorResponse } from '@/lib/api-helpers';
 import { decrypt } from '@/lib/crypto';
 import { getUserByUsername } from '@/lib/x-api';
+import { DEMO_MODE, DEMO_ACCOUNTS } from '@/lib/demo';
 
 // GET: 追跡アカウント一覧
 export async function GET() {
+  if (DEMO_MODE) return jsonResponse({ accounts: DEMO_ACCOUNTS });
+
   const auth = await getAuthenticatedClient();
   if ('error' in auth && auth.error) return auth.error;
   const { supabase, tenantId } = auth as Exclude<typeof auth, { error: any }>;

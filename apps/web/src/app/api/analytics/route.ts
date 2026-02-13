@@ -1,9 +1,54 @@
 import { NextRequest } from 'next/server';
 import { getAuthenticatedClient, jsonResponse, errorResponse } from '@/lib/api-helpers';
 import { calculateER } from '@/lib/classify';
+import { DEMO_MODE, DEMO_POSTS, DEMO_ACCOUNTS } from '@/lib/demo';
 
 // GET: 分析データ
 export async function GET(request: NextRequest) {
+  if (DEMO_MODE) {
+    const posts = DEMO_POSTS;
+    const followers = 1250000;
+    const dailyMap = new Map<string, number>();
+    const weeklyMap = new Map<string, number>();
+    for (const p of posts) {
+      const d = new Date(p.posted_at);
+      const day = d.toISOString().slice(0, 10);
+      dailyMap.set(day, (dailyMap.get(day) || 0) + 1);
+      const ws = new Date(d); ws.setDate(d.getDate() - d.getDay());
+      const wk = ws.toISOString().slice(0, 10);
+      weeklyMap.set(wk, (weeklyMap.get(wk) || 0) + 1);
+    }
+    const daily = Array.from(dailyMap).map(([date, count]) => ({ date, count })).sort((a, b) => a.date.localeCompare(b.date));
+    const weekly = Array.from(weeklyMap).map(([week, count]) => ({ week, count })).sort((a, b) => a.week.localeCompare(b.week));
+    const mediaRatio: Record<string, number> = {};
+    const themeDistribution: Record<string, number> = {};
+    for (const p of posts) {
+      mediaRatio[p.media_type] = (mediaRatio[p.media_type] || 0) + 1;
+      const t = p.theme || 'other';
+      themeDistribution[t] = (themeDistribution[t] || 0) + 1;
+    }
+    const erValues = posts.map(p => ({
+      id: p.id, er: calculateER(p.likes_count, p.replies_count, p.reposts_count, p.quotes_count, followers),
+    }));
+    const sorted = [...erValues.map(e => e.er)].sort((a, b) => a - b);
+    const avgER = sorted.reduce((a, b) => a + b, 0) / sorted.length;
+    const p75 = sorted[Math.floor(sorted.length * 0.75)] || 0;
+    const hits = posts.filter(p => {
+      const er = erValues.find(e => e.id === p.id)?.er || 0;
+      return er >= p75 && er > 0;
+    }).map(p => ({
+      id: p.id, post_x_id: p.post_x_id, text: p.text?.slice(0, 100),
+      posted_at: p.posted_at, er: erValues.find(e => e.id === p.id)?.er || 0,
+      likes_count: p.likes_count, reposts_count: p.reposts_count,
+    })).sort((a, b) => b.er - a.er).slice(0, 20);
+    return jsonResponse({
+      total_posts: posts.length, followers_count: followers,
+      frequency: { daily, weekly }, media_ratio: mediaRatio,
+      er_stats: { avg: Math.round(avgER * 10000) / 10000, p75: Math.round(p75 * 10000) / 10000, max: Math.round(sorted[sorted.length - 1]! * 10000) / 10000 },
+      hits, theme_distribution: themeDistribution,
+    });
+  }
+
   const auth = await getAuthenticatedClient();
   if ('error' in auth && auth.error) return auth.error;
   const { supabase, tenantId } = auth as Exclude<typeof auth, { error: any }>;

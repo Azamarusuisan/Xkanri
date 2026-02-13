@@ -1,8 +1,40 @@
 import { NextRequest } from 'next/server';
 import { getAuthenticatedClient, jsonResponse, errorResponse } from '@/lib/api-helpers';
+import { DEMO_MODE, DEMO_AUDIT_LOGS } from '@/lib/demo';
 
 // GET: 監査ログ集計
 export async function GET(request: NextRequest) {
+  if (DEMO_MODE) {
+    const logs = DEMO_AUDIT_LOGS;
+    const page = 1;
+    const limit = 50;
+    const endpointBreakdown: Record<string, { count: number; units: number }> = {};
+    let totalUnits = 0;
+    let rateLimitCount = 0;
+    const dailyBreakdown: Record<string, { calls: number; units: number }> = {};
+    for (const log of logs) {
+      const ep = log.endpoint;
+      if (!endpointBreakdown[ep]) endpointBreakdown[ep] = { count: 0, units: 0 };
+      endpointBreakdown[ep].count++;
+      endpointBreakdown[ep].units += log.estimated_units;
+      totalUnits += log.estimated_units;
+      if (log.status_code === 429) rateLimitCount++;
+      const day = new Date(log.created_at).toISOString().slice(0, 10);
+      if (!dailyBreakdown[day]) dailyBreakdown[day] = { calls: 0, units: 0 };
+      dailyBreakdown[day].calls++;
+      dailyBreakdown[day].units += log.estimated_units;
+    }
+    return jsonResponse({
+      logs: logs.slice(0, limit), total_logs: logs.length, page, limit,
+      total_pages: Math.ceil(logs.length / limit),
+      summary: {
+        total_calls: logs.length, total_units: totalUnits, rate_limit_count: rateLimitCount,
+        endpoint_breakdown: Object.entries(endpointBreakdown).map(([endpoint, d]) => ({ endpoint, ...d })),
+        daily: Object.entries(dailyBreakdown).map(([date, d]) => ({ date, ...d })).sort((a, b) => a.date.localeCompare(b.date)),
+      },
+    });
+  }
+
   const auth = await getAuthenticatedClient();
   if ('error' in auth && auth.error) return auth.error;
   const { supabase, tenantId } = auth as Exclude<typeof auth, { error: any }>;

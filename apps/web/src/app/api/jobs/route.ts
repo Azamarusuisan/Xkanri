@@ -1,8 +1,11 @@
 import { NextRequest } from 'next/server';
 import { getAuthenticatedClient, jsonResponse, errorResponse } from '@/lib/api-helpers';
+import { DEMO_MODE, DEMO_JOBS } from '@/lib/demo';
 
 // GET: ジョブ一覧
 export async function GET() {
+  if (DEMO_MODE) return jsonResponse({ jobs: DEMO_JOBS });
+
   const auth = await getAuthenticatedClient();
   if ('error' in auth && auth.error) return auth.error;
   const { supabase, tenantId } = auth as Exclude<typeof auth, { error: any }>;

@@ -1,13 +1,28 @@
 import { NextRequest } from 'next/server';
 import { getAuthenticatedClient, jsonResponse, errorResponse } from '@/lib/api-helpers';
+import { DEMO_MODE, DEMO_ACCOUNTS } from '@/lib/demo';
 
 // POST: 推定リクエスト数を計算（ジョブ作成前のプレビュー）
 export async function POST(request: NextRequest) {
+  const body = await request.json();
+
+  if (DEMO_MODE) {
+    const { tracked_account_ids, period } = body;
+    const now = new Date();
+    const days = period === '1year' ? 365 : period === '3months' ? 90 : 28;
+    const periodStart = new Date(now.getTime() - days * 86400000);
+    const estimates = (tracked_account_ids || []).map((id: string) => {
+      const acc = DEMO_ACCOUNTS.find(a => a.id === id);
+      const estimatedTweets = Math.ceil(days * 3);
+      const requests = 1 + Math.ceil(estimatedTweets / 100) + 1;
+      return { account_id: id, username: acc?.username || 'unknown', estimated_tweets: estimatedTweets, estimated_requests: requests, is_differential: false };
+    });
+    return jsonResponse({ estimates, total_requests: estimates.reduce((s: number, e: any) => s + e.estimated_requests, 0), period: { start: periodStart.toISOString(), end: now.toISOString(), days } });
+  }
+
   const auth = await getAuthenticatedClient();
   if ('error' in auth && auth.error) return auth.error;
   const { supabase, tenantId } = auth as Exclude<typeof auth, { error: any }>;
-
-  const body = await request.json();
   const { tracked_account_ids, period } = body;
 
   if (!Array.isArray(tracked_account_ids) || tracked_account_ids.length === 0) {

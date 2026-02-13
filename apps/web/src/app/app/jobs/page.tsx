@@ -2,31 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogDescription,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { Plus, Loader2, ListTodo, AlertTriangle } from 'lucide-react';
@@ -62,13 +45,13 @@ interface Estimate {
   is_differential: boolean;
 }
 
-const STATUS_BADGES: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; label: string }> = {
-  queued: { variant: 'outline', label: '待機中' },
-  running: { variant: 'default', label: '実行中' },
-  completed: { variant: 'secondary', label: '完了' },
-  failed: { variant: 'destructive', label: '失敗' },
-  rate_limited: { variant: 'outline', label: 'レート制限' },
-  cancelled: { variant: 'outline', label: 'キャンセル' },
+const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string; border: string }> = {
+  queued: { label: '待機中', bg: '#f1f3f4', color: '#5f6368', border: '#dadce0' },
+  running: { label: '実行中', bg: '#e8f0fe', color: '#1a73e8', border: '#4285f4' },
+  completed: { label: '完了', bg: '#e6f4ea', color: '#137333', border: '#34a853' },
+  failed: { label: '失敗', bg: '#fce8e6', color: '#c5221f', border: '#ea4335' },
+  rate_limited: { label: 'レート制限', bg: '#fef7e0', color: '#b05a00', border: '#fbbc04' },
+  cancelled: { label: 'キャンセル', bg: '#f1f3f4', color: '#5f6368', border: '#dadce0' },
 };
 
 const PERIODS = [
@@ -90,20 +73,15 @@ export default function JobsPage() {
   const [creating, setCreating] = useState(false);
   const [step, setStep] = useState<'select' | 'confirm'>('select');
 
-  useEffect(() => {
-    Promise.all([fetchJobs(), fetchAccounts()]);
-  }, []);
+  useEffect(() => { Promise.all([fetchJobs(), fetchAccounts()]); }, []);
 
   async function fetchJobs() {
     try {
       const res = await fetch('/api/jobs');
       const data = await res.json();
       setJobs(data.jobs || []);
-    } catch {
-      toast.error('ジョブ一覧の取得に失敗しました');
-    } finally {
-      setLoading(false);
-    }
+    } catch { toast.error('ジョブ一覧の取得に失敗しました'); }
+    finally { setLoading(false); }
   }
 
   async function fetchAccounts() {
@@ -119,12 +97,8 @@ export default function JobsPage() {
     setEstimating(true);
     try {
       const res = await fetch('/api/jobs/estimate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tracked_account_ids: [selectedAccount],
-          period: selectedPeriod,
-        }),
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tracked_account_ids: [selectedAccount], period: selectedPeriod }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -133,21 +107,15 @@ export default function JobsPage() {
       setStep('confirm');
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'エラーが発生しました');
-    } finally {
-      setEstimating(false);
-    }
+    } finally { setEstimating(false); }
   }
 
   async function handleCreate() {
     setCreating(true);
     try {
       const res = await fetch('/api/jobs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tracked_account_id: selectedAccount,
-          period: selectedPeriod,
-        }),
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tracked_account_id: selectedAccount, period: selectedPeriod }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -157,9 +125,7 @@ export default function JobsPage() {
       fetchJobs();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'エラーが発生しました');
-    } finally {
-      setCreating(false);
-    }
+    } finally { setCreating(false); }
   }
 
   function resetDialog() {
@@ -171,123 +137,89 @@ export default function JobsPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <div className="flex items-center justify-center h-64"><Loader2 className="h-5 w-5 animate-spin text-[#1a73e8]" /></div>;
   }
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold">収集ジョブ</h2>
-          <p className="text-sm text-muted-foreground">
-            投稿データの収集ジョブを管理
-          </p>
+          <h1 className="text-[20px] font-normal text-[#202124]">収集ジョブ</h1>
+          <p className="text-[12px] text-[#5f6368] mt-0.5">投稿データの収集ジョブを管理</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetDialog(); }}>
           <DialogTrigger asChild>
-            <Button disabled={accounts.length === 0}>
-              <Plus className="h-4 w-4 mr-2" />
+            <Button disabled={accounts.length === 0} className="h-9 px-4 bg-[#1a73e8] hover:bg-[#1557b0] text-[12px]">
+              <Plus className="h-3.5 w-3.5 mr-1.5" />
               ジョブ作成
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-[440px]">
             <DialogHeader>
-              <DialogTitle>
+              <DialogTitle className="text-[16px] font-medium text-[#202124]">
                 {step === 'select' ? '収集ジョブを作成' : '推定コストの確認'}
               </DialogTitle>
-              <DialogDescription>
-                {step === 'select'
-                  ? '対象アカウントと期間を選択してください'
-                  : '推定リクエスト数を確認してジョブを作成してください'}
+              <DialogDescription className="text-[12px] text-[#5f6368]">
+                {step === 'select' ? '対象アカウントと期間を選択してください' : '推定リクエスト数を確認してジョブを作成してください'}
               </DialogDescription>
             </DialogHeader>
 
             {step === 'select' ? (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">対象アカウント</label>
+              <div className="space-y-4 pt-2">
+                <div className="space-y-1.5">
+                  <label className="text-[12px] text-[#5f6368]">対象アカウント</label>
                   <Select value={selectedAccount} onValueChange={setSelectedAccount}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="アカウントを選択" />
-                    </SelectTrigger>
+                    <SelectTrigger className="h-9 border-[#dadce0]"><SelectValue placeholder="アカウントを選択" /></SelectTrigger>
                     <SelectContent>
                       {accounts.map((a) => (
-                        <SelectItem key={a.id} value={a.id}>
-                          @{a.username}
-                        </SelectItem>
+                        <SelectItem key={a.id} value={a.id}>@{a.username}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">期間</label>
+                <div className="space-y-1.5">
+                  <label className="text-[12px] text-[#5f6368]">期間</label>
                   <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
+                    <SelectTrigger className="h-9 border-[#dadce0]"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {PERIODS.map((p) => (
-                        <SelectItem key={p.value} value={p.value}>
-                          {p.label}
-                        </SelectItem>
+                        <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <Button
-                  onClick={handleEstimate}
-                  disabled={!selectedAccount || estimating}
-                  className="w-full"
-                >
-                  {estimating ? (
-                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> 推定中...</>
-                  ) : (
-                    '推定コストを確認'
-                  )}
+                <Button onClick={handleEstimate} disabled={!selectedAccount || estimating} className="w-full h-9 bg-[#1a73e8] hover:bg-[#1557b0] text-[12px]">
+                  {estimating ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> 推定中...</> : '推定コストを確認'}
                 </Button>
               </div>
             ) : (
-              <div className="space-y-4">
-                <Card className="bg-muted/50">
-                  <CardContent className="pt-4">
-                    <div className="flex items-start gap-3">
-                      <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5 shrink-0" />
-                      <div className="space-y-2 text-sm">
-                        {estimates?.map((e) => (
-                          <div key={e.account_id}>
-                            <p className="font-medium">@{e.username}</p>
-                            <p className="text-muted-foreground">
-                              推定 {e.estimated_tweets} 件の投稿 / {e.estimated_requests} リクエスト
-                              {e.is_differential && ' (差分取得)'}
-                            </p>
-                          </div>
-                        ))}
-                        <div className="pt-2 border-t">
-                          <p className="font-bold">
-                            合計推定リクエスト数: {totalRequests}
-                          </p>
-                          <p className="text-muted-foreground text-xs">
-                            ※ 実際のリクエスト数は投稿件数により変動します
+              <div className="space-y-4 pt-2">
+                <div className="rounded-lg bg-[#fef7e0] border border-[#fbbc04] p-4">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="h-4 w-4 text-[#b05a00] mt-0.5 shrink-0" />
+                    <div className="space-y-2 text-[12px]">
+                      {estimates?.map((e) => (
+                        <div key={e.account_id}>
+                          <p className="font-medium text-[#202124]">@{e.username}</p>
+                          <p className="text-[#5f6368]">
+                            推定 {e.estimated_tweets} 件の投稿 / {e.estimated_requests} リクエスト
+                            {e.is_differential && ' (差分取得)'}
                           </p>
                         </div>
+                      ))}
+                      <div className="pt-2 border-t border-[#fbbc04]/30">
+                        <p className="font-medium text-[#202124]">合計推定リクエスト数: {totalRequests}</p>
+                        <p className="text-[#5f6368] text-[11px] mt-0.5">※ 実際のリクエスト数は投稿件数により変動します</p>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
                 <DialogFooter className="flex gap-2">
-                  <Button variant="outline" onClick={() => setStep('select')}>
+                  <Button variant="outline" onClick={() => setStep('select')} className="h-9 text-[12px] border-[#dadce0] text-[#3c4043]">
                     戻る
                   </Button>
-                  <Button onClick={handleCreate} disabled={creating}>
-                    {creating ? (
-                      <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> 作成中...</>
-                    ) : (
-                      'ジョブを作成'
-                    )}
+                  <Button onClick={handleCreate} disabled={creating} className="h-9 px-5 bg-[#1a73e8] hover:bg-[#1557b0] text-[12px]">
+                    {creating ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> 作成中...</> : 'ジョブを作成'}
                   </Button>
                 </DialogFooter>
               </div>
@@ -297,17 +229,15 @@ export default function JobsPage() {
       </div>
 
       {jobs.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <ListTodo className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">ジョブがありません</p>
-          </CardContent>
-        </Card>
+        <div className="bg-white rounded-lg border border-[#dadce0] flex flex-col items-center justify-center py-16">
+          <ListTodo className="h-10 w-10 text-[#dadce0] mb-3" />
+          <p className="text-[13px] text-[#5f6368]">ジョブがありません</p>
+        </div>
       ) : (
-        <Card>
+        <div className="bg-white rounded-lg border border-[#dadce0] overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow>
+              <TableRow className="hover:bg-transparent">
                 <TableHead>アカウント</TableHead>
                 <TableHead>ステータス</TableHead>
                 <TableHead>期間</TableHead>
@@ -319,28 +249,30 @@ export default function JobsPage() {
             </TableHeader>
             <TableBody>
               {jobs.map((job) => {
-                const badge = STATUS_BADGES[job.status] || STATUS_BADGES.queued;
+                const sc = STATUS_CONFIG[job.status] || STATUS_CONFIG.queued;
                 return (
-                  <TableRow key={job.id}>
-                    <TableCell className="font-medium">
+                  <TableRow key={job.id} className="hover:bg-[#f8f9fa]">
+                    <TableCell className="text-[13px] font-medium text-[#202124]">
                       @{job.tracked_accounts.username}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={badge.variant}>{badge.label}</Badge>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium" style={{ backgroundColor: sc.bg, color: sc.color, border: `1px solid ${sc.border}` }}>
+                        {sc.label}
+                      </span>
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                    <TableCell className="text-[12px] text-[#5f6368]">
                       {job.period_start
                         ? `${new Date(job.period_start).toLocaleDateString('ja-JP')} 〜 ${new Date(job.period_end!).toLocaleDateString('ja-JP')}`
                         : '-'}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="text-[13px] text-[#3c4043] font-mono">
                       {job.estimated_requests ?? '-'} / {job.actual_requests}
                     </TableCell>
-                    <TableCell>{job.posts_fetched}</TableCell>
-                    <TableCell className="text-sm text-destructive max-w-[200px] truncate">
+                    <TableCell className="text-[13px] text-[#3c4043]">{job.posts_fetched}</TableCell>
+                    <TableCell className="text-[12px] text-[#c5221f] max-w-[200px] truncate">
                       {job.error_message || '-'}
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                    <TableCell className="text-[12px] text-[#5f6368]">
                       {new Date(job.created_at).toLocaleString('ja-JP')}
                     </TableCell>
                   </TableRow>
@@ -348,7 +280,7 @@ export default function JobsPage() {
               })}
             </TableBody>
           </Table>
-        </Card>
+        </div>
       )}
     </div>
   );

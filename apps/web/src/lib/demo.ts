@@ -50,6 +50,7 @@ function makePost(i: number, accIdx: number) {
     '技術者インタビュー：次世代エンジンの開発秘話',
   ];
   const themes = ['new_product', 'event', 'campaign', 'product', 'collab', 'brand', 'other', 'other', 'other', 'product'];
+  const appealFrames = ['news', 'emotional', 'benefit', 'news', 'scarcity', 'news', 'other', 'social_proof', 'emotional', 'question'];
   const mediaTypes = ['photo', 'video', 'none', 'photo', 'photo', 'none', 'photo', 'video', 'photo', 'none'];
   const daysAgo = Math.floor(i * 1.5) + 1;
   const likes = Math.floor(Math.random() * 5000) + 100;
@@ -75,7 +76,11 @@ function makePost(i: number, accIdx: number) {
     media_type: mediaTypes[idx],
     hashtags: (texts[idx].match(/#(\S+)/g) || []).map(t => t.replace('#', '')),
     theme: themes[idx],
+    appeal_frame: appealFrames[idx],
     is_hit: er > 0.005,
+    virality_ratio: likes > 0 ? reposts / likes : 0,
+    conversation_ratio: likes > 0 ? replies / likes : 0,
+    quote_ratio: likes > 0 ? quotes / likes : 0,
     raw_json: {},
     created_at: ago(daysAgo),
     tracked_accounts: { username: acc.username, display_name: acc.display_name },
@@ -151,4 +156,70 @@ export const DEMO_AUDIT_LOGS = (() => {
     });
   }
   return logs;
+})();
+
+// --- Ads Demo Data ---
+
+export const DEMO_ADS_CONNECTION = {
+  id: 'demo-ads-conn-1',
+  status: 'ok',
+  ad_account_id: 'ads-123456',
+  ad_account_name: 'Toyota JP Ads',
+  last_tested_at: ago(1),
+  created_at: ago(30),
+  updated_at: ago(1),
+};
+
+export const DEMO_AD_ACCOUNTS = [
+  {
+    id: 'demo-ad-acc-1', tenant_id: 'demo', ad_account_x_id: 'ads-123456',
+    name: 'Toyota JP Ads', currency: 'JPY', timezone: 'Asia/Tokyo', status: 'active',
+    created_at: ago(30), updated_at: ago(1),
+  },
+];
+
+export const DEMO_AD_CREATIVES = (() => {
+  const names = [
+    '新型モデル紹介', 'ブランドムービー', 'キャンペーン告知', '試乗体験',
+    'テクノロジー訴求', 'ライフスタイル', '期間限定オファー', 'ユーザーボイス',
+    'コラボ企画', 'イベント集客',
+  ];
+  const creatives = [];
+  for (let i = 0; i < 10; i++) {
+    creatives.push({
+      id: `demo-creative-${i}`,
+      tenant_id: 'demo',
+      ad_account_id: 'demo-ad-acc-1',
+      creative_x_id: `creative-x-${i}`,
+      name: names[i],
+      post_id: `demo-post-0-${i}`,
+      status: 'active',
+      created_at: ago(20 - i),
+    });
+  }
+  return creatives;
+})();
+
+export const DEMO_AD_STATS_DAILY = (() => {
+  const stats = [];
+  for (const creative of DEMO_AD_CREATIVES) {
+    for (let d = 0; d < 14; d++) {
+      const spend = Math.floor(Math.random() * 50000) + 5000;
+      const impressions = Math.floor(Math.random() * 100000) + 10000;
+      const clicks = Math.floor(impressions * (Math.random() * 0.03 + 0.005));
+      const engagements = Math.floor(impressions * (Math.random() * 0.05 + 0.01));
+      stats.push({
+        id: `demo-adstat-${creative.id}-${d}`,
+        tenant_id: 'demo',
+        creative_id: creative.id,
+        stat_date: ago(d + 1).slice(0, 10),
+        spend,
+        impressions,
+        clicks,
+        engagements,
+        conversions: Math.floor(clicks * Math.random() * 0.1),
+      });
+    }
+  }
+  return stats;
 })();

@@ -11,6 +11,8 @@ import {
   FileText,
   LogOut,
   LayoutDashboard,
+  Sparkles,
+  Megaphone,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
@@ -32,6 +34,7 @@ const NAV_SECTIONS: Array<{ title?: string; items: NavItem[] }> = [
     title: 'データソース',
     items: [
       { href: '/app/connections/x', label: 'X API 接続', icon: PlugZap },
+      { href: '/app/connections/ads-x', label: 'X Ads 接続', icon: Megaphone },
       { href: '/app/accounts', label: '追跡アカウント', icon: Users },
       { href: '/app/jobs', label: '収集ジョブ', icon: ListTodo },
     ],
@@ -40,7 +43,9 @@ const NAV_SECTIONS: Array<{ title?: string; items: NavItem[] }> = [
     title: 'レポート',
     items: [
       { href: '/app/data/posts', label: '投稿データ', icon: Database },
-      { href: '/app/analytics', label: 'パフォーマンス', icon: BarChart3 },
+      { href: '/app/analytics', label: 'パフォーマンス', icon: BarChart3, exact: true },
+      { href: '/app/analytics/creative', label: 'クリエイティブ分析', icon: Sparkles },
+      { href: '/app/ads/analytics', label: '広告パフォーマンス', icon: Megaphone },
     ],
   },
   {
